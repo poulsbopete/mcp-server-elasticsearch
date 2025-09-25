@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  elasticsearch-mcp-server:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Elastic Serverless endpoint configuration
+      - ES_URL=https://otel-demo-a5630c.kb.us-east-1.aws.elastic.cloud
+      - ES_API_KEY=${ES_API_KEY}
+      # Alternative: use username/password instead of API key
+      # - ES_USERNAME=${ES_USERNAME}
+      # - ES_PASSWORD=${ES_PASSWORD}
+      - ES_SSL_SKIP_VERIFY=false
+    command: ["http"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a simple web interface to test the MCP server
+  mcp-test-ui:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./test-ui:/usr/share/nginx/html:ro
+    depends_on:
+      - elasticsearch-mcp-server
+    restart: unless-stopped

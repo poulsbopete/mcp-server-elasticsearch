@@ -1,0 +1,96 @@
+{
+    // Configuration for Elastic Serverless endpoint
+    // Replace the placeholder values with your actual credentials
+    
+    "elasticsearch": {
+        // Your Elastic Serverless endpoint URL
+        "url": "https://otel-demo-a5630c.kb.us-east-1.aws.elastic.cloud",
+        
+        // Authentication - choose one of the following:
+        
+        // Option 1: API Key (recommended for serverless)
+        "api_key": "YOUR_ELASTIC_API_KEY_HERE",
+        
+        // Option 2: Basic Authentication (alternative)
+        // "username": "elastic",
+        // "password": "YOUR_PASSWORD_HERE",
+        
+        // SSL/TLS settings
+        "ssl_skip_verify": false,
+        
+        // Custom tools for observability use cases
+        "tools": {
+            // Include all observability tools
+            "include": [
+                "list_indices",
+                "get_mappings", 
+                "search",
+                "esql",
+                "get_shards",
+                "query_observability_data",
+                "aggregate_metrics",
+                "analyze_traces",
+                "analyze_logs",
+                "health_check"
+            ],
+            
+            // Custom observability tools
+            "custom": {
+                "cpu_metrics": {
+                    "type": "esql",
+                    "description": "Get CPU metrics for the last hour",
+                    "parameters": {
+                        "query": {
+                            "type": "string",
+                            "description": "ES|QL query for CPU metrics"
+                        }
+                    },
+                    "query": "FROM metrics-* | WHERE @timestamp >= now() - 1h AND metricset.name == \"cpu\" | STATS avg(system.cpu.total.pct) AS avg_cpu BY host.name | SORT avg_cpu DESC"
+                },
+                
+                "memory_metrics": {
+                    "type": "esql", 
+                    "description": "Get memory usage metrics",
+                    "parameters": {
+                        "query": {
+                            "type": "string",
+                            "description": "ES|QL query for memory metrics"
+                        }
+                    },
+                    "query": "FROM metrics-* | WHERE @timestamp >= now() - 1h AND metricset.name == \"memory\" | STATS avg(system.memory.used.pct) AS avg_memory BY host.name | SORT avg_memory DESC"
+                },
+                
+                "error_logs": {
+                    "type": "esql",
+                    "description": "Find error logs in the last hour",
+                    "parameters": {
+                        "query": {
+                            "type": "string", 
+                            "description": "ES|QL query for error logs"
+                        }
+                    },
+                    "query": "FROM logs-* | WHERE @timestamp >= now() - 1h AND log.level == \"ERROR\" | SORT @timestamp DESC | LIMIT 100"
+                },
+                
+                "slow_traces": {
+                    "type": "esql",
+                    "description": "Find slow traces in the last hour",
+                    "parameters": {
+                        "query": {
+                            "type": "string",
+                            "description": "ES|QL query for slow traces"
+                        }
+                    },
+                    "query": "FROM traces-* | WHERE @timestamp >= now() - 1h | STATS avg(span.duration.us) AS avg_duration, count() AS trace_count BY service.name | WHERE avg_duration > 1000000 | SORT avg_duration DESC"
+                }
+            }
+        },
+        
+        // Prompts for common observability tasks
+        "prompts": [
+            "You are an observability expert. Help users analyze their metrics, traces, and logs from Elasticsearch. Focus on identifying performance issues, errors, and system health.",
+            "When analyzing data, always consider time ranges and provide context about what the data means for system performance.",
+            "For metrics analysis, explain trends and anomalies. For traces, help identify bottlenecks and slow operations. For logs, help find errors and patterns."
+        ]
+    }
+}

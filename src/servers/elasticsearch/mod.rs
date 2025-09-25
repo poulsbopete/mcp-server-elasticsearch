@@ -228,12 +228,16 @@ fn rewrite_localhost(url: &mut Url) -> anyhow::Result<()> {
         "host.containers.internal", // Podman, maybe others
     ];
 
-    if let Some(host) = url.host_str() && host == "localhost" {
-        for alias in aliases {
-            if let Ok(mut alias_add) = (*alias, 80).to_socket_addrs() && alias_add.next().is_some() {
-                url.set_host(Some(alias))?;
-                tracing::info!("Container mode: using '{alias}' instead of 'localhost'");
-                return Ok(());
+    if let Some(host) = url.host_str() {
+        if host == "localhost" {
+            for alias in aliases {
+                if let Ok(mut alias_add) = (*alias, 80).to_socket_addrs() {
+                    if alias_add.next().is_some() {
+                        url.set_host(Some(alias))?;
+                        tracing::info!("Container mode: using '{alias}' instead of 'localhost'");
+                        return Ok(());
+                    }
+                }
             }
         }
     }
