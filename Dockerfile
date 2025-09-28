@@ -29,3 +29,4 @@ ENV CONTAINER_MODE=true
 
 EXPOSE 8080/tcp
 ENTRYPOINT ["/usr/local/bin/elasticsearch-core-mcp-server"]
+CMD ["http"]

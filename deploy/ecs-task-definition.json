@@ -1,0 +1,57 @@
+{
+  "family": "elasticsearch-mcp-server",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::YOUR_ACCOUNT:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "elasticsearch-mcp-server",
+      "image": "your-account.dkr.ecr.us-east-1.amazonaws.com/elasticsearch-mcp-server:latest",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "CONTAINER_MODE",
+          "value": "true"
+        },
+        {
+          "name": "HTTP_ADDRESS",
+          "value": "0.0.0.0:8080"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ES_URL",
+          "valueFrom": "arn:aws:ssm:us-east-1:YOUR_ACCOUNT:parameter/mcp-server/es-url"
+        },
+        {
+          "name": "ES_API_KEY",
+          "valueFrom": "arn:aws:ssm:us-east-1:YOUR_ACCOUNT:parameter/mcp-server/es-api-key"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:8080/ping || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/elasticsearch-mcp-server",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "essential": true
+    }
+  ]
+}

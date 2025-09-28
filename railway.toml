@@ -1,0 +1,17 @@
+[build]
+builder = "dockerfile"
+dockerfile = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/ping"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+startCommand = "elasticsearch-core-mcp-server http"
+
+[env]
+CONTAINER_MODE = "true"
+HTTP_ADDRESS = "0.0.0.0:8080"
+# Set these in Railway dashboard:
+# ES_URL = "https://otel-demo-a5630c.kb.us-east-1.aws.elastic.cloud"
+# ES_API_KEY = "your-api-key-here"

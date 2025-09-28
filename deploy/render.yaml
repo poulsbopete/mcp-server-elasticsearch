@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: elasticsearch-mcp-server
+    runtime: docker
+    repo: https://github.com/your-username/mcp-server-elasticsearch.git # Update this
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /ping
+    envVars:
+      - key: CONTAINER_MODE
+        value: "true"
+      - key: HTTP_ADDRESS
+        value: "0.0.0.0:8080"
+      - key: ES_URL
+        value: "https://otel-demo-a5630c.kb.us-east-1.aws.elastic.cloud"
+      - key: ES_API_KEY
+        sync: false # Set this as a secret in Render dashboard
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+    autoDeploy: true

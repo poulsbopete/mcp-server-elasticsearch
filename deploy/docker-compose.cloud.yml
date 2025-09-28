@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  elasticsearch-mcp-server:
+    build: 
+      context: ../
+      dockerfile: Dockerfile
+    ports:
+      - "80:8080"
+      - "443:8080"  # If you have SSL termination elsewhere
+    environment:
+      - CONTAINER_MODE=true
+      - HTTP_ADDRESS=0.0.0.0:8080
+      - ES_URL=${ES_URL}
+      - ES_API_KEY=${ES_API_KEY}
+      - ES_SSL_SKIP_VERIFY=false
+    command: ["http"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-server.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.mcp-server.tls=true"
+      - "traefik.http.routers.mcp-server.tls.certresolver=letsencrypt"
